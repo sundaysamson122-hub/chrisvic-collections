@@ -6,36 +6,8 @@ import { supabase } from '../lib/supabase';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'message' | 'cart' | 'me' | 'settings'
   const [cart, setCart] = useState([]);
-
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      region: 'Ikorodu, Lagos state, Nigeria',
-      street: 'RVJ HOTEL Itele, Maya Ikorodu Lagos State Nigeria.',
-      name: 'SLIM DADDY',
-      phone: '+234-8168940939',
-      isDefault: true,
-    },
-    {
-      id: 2,
-      region: 'Ikeja, Lagos state, Nigeria',
-      street: '11 14th Unity Estate Maya Ikorodu Lagos',
-      name: 'SUNDAY SAMSON ELUU',
-      phone: '+234-8168940939',
-      isDefault: false,
-    },
-  ]);
-
-  const [newAddress, setNewAddress] = useState({
-    region: 'Lagos State, Nigeria',
-    street: '',
-    name: '',
-    phone: '',
-    zipCode: '',
-    isDefault: false,
-  });
 
   useEffect(() => {
     async function fetchProducts() {
@@ -73,7 +45,9 @@ export default function Home() {
   };
 
   const toggleSelect = (id) => {
-    setCart((prev) => prev.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item)));
+    setCart((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item))
+    );
   };
 
   const toggleSelectAll = () => {
@@ -81,174 +55,301 @@ export default function Home() {
     setCart((prev) => prev.map((item) => ({ ...item, selected: !allSelected })));
   };
 
-  const totalPrice = cart.filter((i) => i.selected).reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const totalPrice = cart
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = () => {
-    const selected = cart.filter((i) => i.selected);
-    if (selected.length === 0) return;
-    let msg = 'Hello Chrisvic Collections, I would like to order:\n\n';
-    selected.forEach((i) => { msg += `• ${i.title} (x${i.quantity}) - ₦${(i.price * i.quantity).toLocaleString()}\n`; });
-    msg += `\nTotal: ₦${totalPrice.toLocaleString()}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  };
+    const selectedItems = cart.filter((item) => item.selected);
+    if (selectedItems.length === 0) return;
 
-  const handleSaveAddress = (e) => {
-    e.preventDefault();
-    if (!newAddress.street || !newAddress.name || !newAddress.phone) return;
-    const entry = { id: Date.now(), ...newAddress };
-    if (newAddress.isDefault) {
-      setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: false })));
-    }
-    setAddresses((prev) => [...prev, entry]);
-    setNewAddress({ region: 'Lagos State, Nigeria', street: '', name: '', phone: '', zipCode: '', isDefault: false });
-    setActiveTab('addresses');
+    let message = 'Hello Chrisvic Collections, I would like to place an order for:\n\n';
+    selectedItems.forEach((item) => {
+      message += `• ${item.title} (x${item.quantity}) - ₦${(item.price * item.quantity).toLocaleString()}\n`;
+    });
+    message += `\nTotal Amount: ₦${totalPrice.toLocaleString()}`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: '100px' }}>
-      
-      {/* HOME TAB */}
+    <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: activeTab === 'settings' ? '20px' : '120px' }}>
+
+      {/* ==================== HOME TAB ==================== */}
       {activeTab === 'home' && (
-        <div style={{ padding: '0.5rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', padding: '0.5rem', fontWeight: 'bold', backgroundColor: '#fff' }}>
-            <span style={{ borderBottom: '3px solid #ff4d00', color: '#000' }}>Rec.</span>
+        <>
+          <div style={{ display: 'flex', gap: '1.5rem', padding: '0.8rem 1rem 0.4rem', fontWeight: 'bold', fontSize: '1.1rem', backgroundColor: '#fff' }}>
+            <span style={{ borderBottom: '3px solid #ff4d00', color: '#000', paddingBottom: '2px' }}>Rec.</span>
             <span style={{ color: '#666' }}>Factory</span>
+            <span style={{ color: '#666' }}>Industrial</span>
           </div>
-          <h3 style={{ fontSize: '1rem', margin: '0.8rem 0' }}>Recommended Products</h3>
-          {loading ? <p>Loading...</p> : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-              {products.map((item) => (
-                <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '0.5rem' }}>
-                  <img src={item.image_url} alt={item.title} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
-                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', marginTop: '0.3rem' }}>{item.title}</div>
-                  <div style={{ color: '#ff4d00', fontWeight: 'bold', margin: '0.2rem 0' }}>₦{Number(item.price).toLocaleString()}</div>
-                  <button onClick={() => addToCart(item)} style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>+ Add to Cart</button>
-                </div>
-              ))}
+
+          <div style={{ padding: '0.5rem 1rem 1rem', backgroundColor: '#fff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f0f0', border: '2px solid #ff4d00', borderRadius: '25px', padding: '0.3rem 0.5rem 0.3rem 1rem' }}>
+              <input type="text" placeholder="Search Chrisvic Collections..." style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.9rem' }} />
+              <button style={{ backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.4rem 1.2rem', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>GO</button>
             </div>
-          )}
-        </div>
+          </div>
+
+          <div style={{ padding: '0 0.5rem' }}>
+            <h3 style={{ fontSize: '1rem', margin: '0.5rem 0', paddingLeft: '0.2rem' }}>Recommended Products</h3>
+            {loading ? (
+              <p style={{ textAlign: 'center', color: '#888', padding: '2rem 0' }}>Loading store catalog...</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                {products.map((item) => (
+                  <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #eee' }}>
+                    <img src={item.image_url} alt={item.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                    <div style={{ padding: '0.6rem' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', height: '2.4em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {item.title}
+                      </div>
+                      <div style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '0.3rem' }}>
+                        ₦{Number(item.price).toLocaleString()}
+                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        style={{ marginTop: '0.5rem', width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '5px', padding: '0.4rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        + Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      {/* CART TAB */}
+      {/* ==================== CART TAB ==================== */}
       {activeTab === 'cart' && (
-        <div style={{ padding: '0.5rem' }}>
-          <div style={{ backgroundColor: '#fff', padding: '0.8rem', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Cart</span>
-            <span onClick={() => setActiveTab('addresses')} style={{ fontSize: '0.8rem', color: '#666', cursor: 'pointer' }}>📍 Manage Address &gt;</span>
+        <div>
+          <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>Cart</span>
+              <span style={{ fontSize: '0.8rem', color: '#666' }}>📍 Ikorodu, Lagos... &gt;</span>
+            </div>
+            <div style={{ color: '#333', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}>Manage</div>
           </div>
-          {cart.length === 0 ? <p style={{ textAlign: 'center', padding: '2rem' }}>Your cart is empty.</p> : (
-            cart.map((item) => (
-              <div key={item.id} style={{ backgroundColor: '#fff', padding: '0.8rem', marginTop: '0.5rem', borderRadius: '8px', display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                <input type="checkbox" checked={item.selected} onChange={() => toggleSelect(item.id)} style={{ accentColor: '#ff4d00' }} />
-                <img src={item.image_url} alt={item.title} style={{ width: '60px', height: '60px', borderRadius: '6px', objectFit: 'cover' }} />
-                <div style={{ flexGrow: 1 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{item.title}</div>
-                  <div style={{ color: '#ff4d00', fontWeight: 'bold' }}>₦{Number(item.price).toLocaleString()}</div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem' }}>
-                    <button onClick={() => updateQuantity(item.id, -1)}>-</button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+
+          <div style={{ backgroundColor: '#fff', display: 'flex', gap: '1.5rem', padding: '0.5rem 1rem', borderBottom: '1px solid #eee', fontSize: '0.9rem', color: '#555' }}>
+            <span style={{ fontWeight: 'bold', color: '#000', borderBottom: '2px solid #ff4d00', paddingBottom: '2px' }}>In Stock {cart.length}</span>
+            <span>Dropshipping</span>
+            <span>Regulars List</span>
+          </div>
+
+          <div style={{ padding: '0.5rem' }}>
+            {cart.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#888' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛒</div>
+                <p>Your cart is empty.</p>
+                <button onClick={() => setActiveTab('home')} style={{ backgroundColor: '#ff4d00', color: '#fff', border: 'none', padding: '0.5rem 1.2rem', borderRadius: '20px', fontWeight: 'bold', marginTop: '0.5rem', cursor: 'pointer' }}>Shop Now</button>
+              </div>
+            ) : (
+              cart.map((item) => (
+                <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '0.8rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                    <input type="checkbox" checked={item.selected} onChange={() => toggleSelect(item.id)} style={{ accentColor: '#ff4d00', width: '18px', height: '18px' }} />
+                    <span>🏪 Chrisvic Store Official &gt;</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.8rem' }}>
+                    <img src={item.image_url} alt={item.title} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
+                    <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#222' }}>{item.title}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
+                        <span style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '1rem' }}>₦{Number(item.price).toLocaleString()}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '4px' }}>
+                          <button onClick={() => updateQuantity(item.id, -1)} style={{ border: 'none', background: '#f5f5f5', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>-</button>
+                          <span style={{ padding: '0 0.6rem', fontSize: '0.85rem' }}>{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, 1)} style={{ border: 'none', background: '#f5f5f5', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>+</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
+
           {cart.length > 0 && (
-            <div style={{ position: 'fixed', bottom: '60px', left: 0, right: 0, backgroundColor: '#fff', padding: '0.8rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #ddd' }}>
-              <label><input type="checkbox" checked={cart.every((i) => i.selected)} onChange={toggleSelectAll} /> Select All</label>
-              <div>
-                <span style={{ color: '#ff4d00', fontWeight: 'bold', marginRight: '0.8rem' }}>₦{totalPrice.toLocaleString()}</span>
-                <button onClick={handleCheckout} style={{ backgroundColor: '#ff4d00', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: 'bold' }}>Checkout</button>
+            <div style={{ position: 'fixed', bottom: '60px', left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 999 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={cart.length > 0 && cart.every((i) => i.selected)} onChange={toggleSelectAll} style={{ accentColor: '#ff4d00', width: '18px', height: '18px' }} />
+                Select All
+              </label>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#555' }}>Total: </span>
+                  <span style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '1.1rem' }}>₦{totalPrice.toLocaleString()}</span>
+                </div>
+                <button
+                  onClick={handleCheckout}
+                  style={{ backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.6rem 1.5rem', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer' }}
+                >
+                  Checkout
+                </button>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ME TAB */}
+      {/* ==================== ME TAB ==================== */}
       {activeTab === 'me' && (
-        <div style={{ padding: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>👤 Chrisvic_Customer</h3>
-            <span onClick={() => setActiveTab('settings')} style={{ fontSize: '1.5rem', cursor: 'pointer' }}>⚙️</span>
+        <div style={{ padding: '0.8rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0.5rem 0.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#ffebd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🐮</div>
+              <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Chrisvic_Customer</span>
+            </div>
+            {/* Click Gear icon to open Buyer Settings */}
+            <div onClick={() => setActiveTab('settings')} style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
+          </div>
+
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1rem', marginBottom: '0.8rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>My Orders</span>
+              <span style={{ color: '#888', fontSize: '0.85rem' }}>All &gt;</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center', fontSize: '0.75rem', color: '#444' }}>
+              <div><div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>💳</div>To Pay</div>
+              <div><div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>📦</div>To Ship</div>
+              <div><div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>🚚</div>To Receive</div>
+              <div><div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>💬</div>To Review</div>
+              <div><div style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>🔄</div>Refund</div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* SETTINGS */}
+      {/* ==================== BUYER SETTINGS PAGE ==================== */}
       {activeTab === 'settings' && (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', padding: '1rem' }}>
-          <span onClick={() => setActiveTab('me')} style={{ fontSize: '1.2rem', cursor: 'pointer' }}>⟨ Back</span>
-          <h3 style={{ marginTop: '1rem' }}>Buyer Settings</h3>
-          <div onClick={() => setActiveTab('addresses')} style={{ padding: '1rem 0', borderBottom: '1px solid #eee', color: '#ff4d00', fontWeight: 'bold', cursor: 'pointer' }}>
-            📍 Address Management &gt;
+        <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
+          {/* Settings Header Bar */}
+          <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', position: 'sticky', top: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <span onClick={() => setActiveTab('me')} style={{ fontSize: '1.4rem', cursor: 'pointer', fontWeight: 'bold' }}>⟨</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Buyer settings</span>
+            </div>
+            <span style={{ fontSize: '1.2rem', color: '#666', cursor: 'pointer' }}>•••</span>
+          </div>
+
+          {/* Settings List Group 1 */}
+          <div style={{ backgroundColor: '#fff', marginTop: '0.5rem' }}>
+            {[
+              { label: 'Account Switch', icon: '🔄' },
+              { label: 'Address Management', icon: '📍' },
+              { label: 'Account & Security', icon: '🔒' },
+              { label: 'Payment Settings', icon: '💳' },
+              { label: 'Privacy', icon: '👁️' },
+              { label: 'Country/Region', detail: 'Global', icon: '🌐' },
+              { label: 'Language', detail: 'English', icon: '🌐' },
+              { label: 'Currency', detail: 'NGN:₦', icon: '₦' },
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ color: '#777' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <div style={{ color: '#888', fontSize: '0.85rem' }}>
+                  {item.detail && <span style={{ marginRight: '0.5rem' }}>{item.detail}</span>}
+                  &gt;
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Settings List Group 2 */}
+          <div style={{ backgroundColor: '#fff', marginTop: '0.5rem' }}>
+            {[
+              { label: 'Notification Settings', icon: '🔔' },
+              { label: 'Network Settings', icon: '📶' },
+              { label: 'Clear Cache', detail: '<100K', icon: '🧹' },
+              { label: 'Interface Settings', detail: 'Home', icon: '🖥️' },
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ color: '#777' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <div style={{ color: '#888', fontSize: '0.85rem' }}>
+                  {item.detail && <span style={{ marginRight: '0.5rem' }}>{item.detail}</span>}
+                  &gt;
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Settings List Group 3 */}
+          <div style={{ backgroundColor: '#fff', marginTop: '0.5rem' }}>
+            {[
+              { label: 'Feedback', icon: '💬' },
+              { label: 'About Us', detail: 'Chrisvic Support', icon: 'ℹ️' },
+              { label: 'License', icon: '📜' },
+              { label: 'Terms of Service', icon: '📋' },
+              { label: 'Privacy Statement', icon: '🛡️' },
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ color: '#777' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <div style={{ color: '#888', fontSize: '0.85rem' }}>
+                  {item.detail && <span style={{ marginRight: '0.5rem' }}>{item.detail}</span>}
+                  &gt;
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Log Out Button */}
+          <div style={{ padding: '1.5rem 1rem', textAlign: 'center' }}>
+            <button style={{ background: 'none', border: 'none', color: '#ff4d00', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}>
+              Log out
+            </button>
           </div>
         </div>
       )}
 
-      {/* ADDRESSES LIST */}
-      {activeTab === 'addresses' && (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', padding: '1rem' }}>
-          <span onClick={() => setActiveTab('settings')} style={{ fontSize: '1.2rem', cursor: 'pointer' }}>⟨ Back</span>
-          <h3>Address Management</h3>
-          {addresses.map((item) => (
-            <div key={item.id} style={{ borderBottom: '1px solid #eee', padding: '0.8rem 0' }}>
-              <div style={{ color: '#888', fontSize: '0.8rem' }}>{item.region}</div>
-              <div style={{ fontWeight: 'bold', margin: '0.2rem 0' }}>{item.street}</div>
-              <div style={{ fontSize: '0.85rem' }}>
-                {item.name} {item.phone} {item.isDefault && <span style={{ color: '#ff4d00', border: '1px solid #ff4d00', padding: '0 4px', fontSize: '0.7rem' }}>默认</span>}
-              </div>
-            </div>
-          ))}
-          <button onClick={() => setActiveTab('add_address')} style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '25px', fontWeight: 'bold', marginTop: '1.5rem', cursor: 'pointer' }}>
-            New Receiving Address
-          </button>
+      {/* ==================== MESSAGE TAB ==================== */}
+      {activeTab === 'message' && (
+        <div style={{ padding: '3rem 1rem', textAlign: 'center', color: '#666' }}>
+          <h3>Messages</h3>
+          <p>Direct WhatsApp Customer Support is active.</p>
         </div>
       )}
 
-      {/* ADD ADDRESS FORM */}
-      {activeTab === 'add_address' && (
-        <div style={{ backgroundColor: '#fff', minHeight: '100vh', padding: '1rem' }}>
-          <span onClick={() => setActiveTab('addresses')} style={{ fontSize: '1.2rem', cursor: 'pointer' }}>⟨ Back</span>
-          <h3>New Receiving Address</h3>
-          <form onSubmit={handleSaveAddress}>
-            <div style={{ margin: '0.8rem 0' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Detailed Address</label>
-              <input type="text" required placeholder="Detailed Address" value={newAddress.street} onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })} style={{ width: '100%', padding: '0.5rem', marginTop: '0.2rem' }} />
-            </div>
-            <div style={{ margin: '0.8rem 0' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Name</label>
-              <input type="text" required placeholder="Name" value={newAddress.name} onChange={(e) => setNewAddress({ ...newAddress, name: e.target.value })} style={{ width: '100%', padding: '0.5rem', marginTop: '0.2rem' }} />
-            </div>
-            <div style={{ margin: '0.8rem 0' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Phone</label>
-              <input type="text" required placeholder="Phone Number" value={newAddress.phone} onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })} style={{ width: '100%', padding: '0.5rem', marginTop: '0.2rem' }} />
-            </div>
-            <div style={{ margin: '0.8rem 0' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Zip Code</label>
-              <input type="text" placeholder="Zip Code" value={newAddress.zipCode} onChange={(e) => setNewAddress({ ...newAddress, zipCode: e.target.value })} style={{ width: '100%', padding: '0.5rem', marginTop: '0.2rem' }} />
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 0' }}>
-              <input type="checkbox" checked={newAddress.isDefault} onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })} />
-              Set as default address
-            </label>
-            <button type="submit" style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '25px', fontWeight: 'bold', cursor: 'pointer' }}>
-              Save
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* BOTTOM NAV */}
-      {!['settings', 'addresses', 'add_address'].includes(activeTab) && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px', backgroundColor: '#fff', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-around', alignItems: 'center', fontSize: '0.75rem' }}>
-          <div onClick={() => setActiveTab('home')} style={{ color: activeTab === 'home' ? '#ff4d00' : '#666', cursor: 'pointer' }}>🏠 Home</div>
-          <div onClick={() => setActiveTab('cart')} style={{ color: activeTab === 'cart' ? '#ff4d00' : '#666', cursor: 'pointer' }}>🛒 Cart ({cart.length})</div>
-          <div onClick={() => setActiveTab('me')} style={{ color: activeTab === 'me' ? '#ff4d00' : '#666', cursor: 'pointer' }}>👤 Me</div>
+      {/* ==================== BOTTOM STICKY NAVIGATION ==================== */}
+      {activeTab !== 'settings' && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px', backgroundColor: '#fff', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-around', alignItems: 'center', fontSize: '0.75rem', color: '#666', zIndex: 1000 }}>
+          <div onClick={() => setActiveTab('home')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'home' ? '#ff4d00' : '#666' }}>
+            <div style={{ fontSize: '1.2rem' }}>🏠</div>
+            <span>Home</span>
+          </div>
+          <div onClick={() => setActiveTab('message')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'message' ? '#ff4d00' : '#666' }}>
+            <div style={{ fontSize: '1.2rem' }}>💬</div>
+            <span>Message</span>
+          </div>
+          <div onClick={() => setActiveTab('cart')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'cart' ? '#ff4d00' : '#666', position: 'relative' }}>
+            <div style={{ fontSize: '1.2rem' }}>🛒</div>
+            <span>Cart</span>
+            {cart.length > 0 && (
+              <span style={{ position: 'absolute', top: '-2px', right: '12px', backgroundColor: '#ff4d00', color: '#fff', borderRadius: '50%', padding: '0.1rem 0.4rem', fontSize: '0.65rem', fontWeight: 'bold' }}>
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </span>
+            )}
+          </div>
+          <div onClick={() => setActiveTab('me')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'me' ? '#ff4d00' : '#666' }}>
+            <div style={{ fontSize: '1.2rem' }}>👤</div>
+            <span>Me</span>
+          </div>
         </div>
       )}
 
     </div>
   );
-}
+        }
+        
