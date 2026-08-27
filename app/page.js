@@ -127,7 +127,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: ['settings', 'addresses', 'add_address'].includes(activeTab) ? '20px' : '120px' }}>
 
-      {/* HOME TAB */}
+      {/* ==================== HOME TAB ==================== */}
       {activeTab === 'home' && (
         <>
           <div style={{ display: 'flex', gap: '1.5rem', padding: '0.8rem 1rem 0.4rem', fontWeight: 'bold', fontSize: '1.1rem', backgroundColor: '#fff' }}>
@@ -145,6 +145,7 @@ export default function Home() {
 
           <div style={{ padding: '0 0.5rem' }}>
             <h3 style={{ fontSize: '1rem', margin: '0.5rem 0', paddingLeft: '0.2rem' }}>Recommended Products</h3>
+
             {loading ? (
               <p style={{ textAlign: 'center', color: '#888', padding: '2rem 0' }}>Loading store catalog...</p>
             ) : (
@@ -174,7 +175,7 @@ export default function Home() {
         </>
       )}
 
-      {/* CART TAB */}
+      {/* ==================== CART TAB ==================== */}
       {activeTab === 'cart' && (
         <div>
           <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -210,8 +211,10 @@ export default function Home() {
                     <img src={item.image_url} alt={item.title} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#222' }}>{item.title}</div>
+                      
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
                         <span style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '1rem' }}>₦{Number(item.price).toLocaleString()}</span>
+                        
                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '4px' }}>
                           <button onClick={() => updateQuantity(item.id, -1)} style={{ border: 'none', background: '#f5f5f5', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>-</button>
                           <span style={{ padding: '0 0.6rem', fontSize: '0.85rem' }}>{item.quantity}</span>
@@ -249,7 +252,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ME TAB */}
+      {/* ==================== ME TAB ==================== */}
       {activeTab === 'me' && (
         <div style={{ padding: '0.8rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0.5rem 0.2rem' }}>
@@ -257,7 +260,8 @@ export default function Home() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#ffebd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🐮</div>
               <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Chrisvic_Customer</span>
             </div>
-            <div onClick={() => setActiveTab('settings')} style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
+            {/* Added onClick to trigger Settings navigation */}
+            <div onClick={() => setActiveTab('settings')} style={{ fontSize: '1.4rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
           </div>
 
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1rem', marginBottom: '0.8rem' }}>
@@ -276,7 +280,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* BUYER SETTINGS PAGE */}
+      {/* ==================== BUYER SETTINGS PAGE ==================== */}
       {activeTab === 'settings' && (
         <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
           <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', position: 'sticky', top: 0 }}>
@@ -296,7 +300,6 @@ export default function Home() {
               <div style={{ color: '#888', fontSize: '0.85rem' }}>&gt;</div>
             </div>
 
-            {/* Address Management Option */}
             <div onClick={() => setActiveTab('addresses')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <span style={{ color: '#777' }}>📍</span>
@@ -327,7 +330,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ADDRESS LIST SCREEN */}
+      {/* ==================== ADDRESS LIST SCREEN ==================== */}
       {activeTab === 'addresses' && (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
@@ -363,14 +366,4 @@ export default function Home() {
           <div style={{ padding: '1rem', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff' }}>
             <button
               onClick={() => setActiveTab('add_address')}
-              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.8rem', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}
-            >
-              New Receiving Address
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* NEW RECEIVING ADDRESS FORM */}
-      {activeTab === 'add_address' && (
-  
+              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px
