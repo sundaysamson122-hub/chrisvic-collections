@@ -7,7 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// 2. Auth Guard Component to Require One-Time Login
+// 2. Auth Guard Component
 export default function AuthGuard({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,15 +15,14 @@ export default function AuthGuard({ children }) {
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   useEffect(() => {
-    // Check initial authentication session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Listen for authentication changes (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
@@ -32,7 +31,6 @@ export default function AuthGuard({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Handle Google OAuth Sign In
   const handleGoogleLogin = async () => {
     setErrorMsg('');
     const { error } = await supabase.auth.signInWithOAuth({
@@ -44,7 +42,6 @@ export default function AuthGuard({ children }) {
     if (error) setErrorMsg(error.message);
   };
 
-  // Handle Email & Password Sign In / Sign Up
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -59,7 +56,6 @@ export default function AuthGuard({ children }) {
     }
   };
 
-  // Display loading state while checking session
   if (loading) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'sans-serif' }}>
@@ -68,7 +64,6 @@ export default function AuthGuard({ children }) {
     );
   }
 
-  // Block access and demand sign-in if no active session is found
   if (!session) {
     return (
       <div style={styles.overlay}>
@@ -114,16 +109,61 @@ export default function AuthGuard({ children }) {
               ? 'Already have an account? Sign In'
               : "Don't have an account? Sign Up"}
           </button>
+
+          {/* Need Help / Message Link */}
+          <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+            <button
+              onClick={() => setShowMessageModal(true)}
+              style={styles.messageLink}
+            >
+              Need help? 💬 Message Us
+            </button>
+          </div>
         </div>
+
+        {/* Message Options Modal Popup */}
+        {showMessageModal && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalCard}>
+              <h3 style={{ margin: '0 0 15px 0' }}>Contact Support</h3>
+              <p style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
+                Choose how you would like to reach us:
+              </p>
+
+              {/* WhatsApp Direct Link */}
+              <a
+                href="https://wa.me/2349033494813?text=Hello%20Chrisvic%20Collections,%20I%20need%20assistance%20with%20logging%20in."
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.whatsappBtn}
+              >
+                💬 WhatsApp (+234 903 349 4813)
+              </a>
+
+              {/* Email Direct Link */}
+              <a
+                href="mailto:chrisviccollection@gmail.com?subject=Support%20Inquiry%20-%20Chrisvic%20Collections"
+                style={styles.emailBtn}
+              >
+                ✉️ Email (chrisviccollection@gmail.com)
+              </a>
+
+              <button
+                onClick={() => setShowMessageModal(false)}
+                style={styles.closeBtn}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Render store content once authenticated
   return children;
 }
 
-// Inline Styles
 const styles = {
   overlay: {
     display: 'grid',
@@ -141,22 +181,11 @@ const styles = {
     maxWidth: '400px',
     width: '100%',
     textAlign: 'center',
+    position: 'relative',
   },
-  title: {
-    margin: '0 0 10px 0',
-    fontSize: '22px',
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    margin: '0 0 20px 0',
-    fontSize: '14px',
-    color: '#666',
-  },
-  error: {
-    color: '#e53e3e',
-    fontSize: '14px',
-    marginBottom: '15px',
-  },
+  title: { margin: '0 0 10px 0', fontSize: '22px', fontWeight: 'bold' },
+  subtitle: { margin: '0 0 20px 0', fontSize: '14px', color: '#666' },
+  error: { color: '#e53e3e', fontSize: '14px', marginBottom: '15px' },
   googleBtn: {
     width: '100%',
     padding: '12px',
@@ -168,24 +197,9 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
   },
-  divider: {
-    margin: '15px 0',
-    color: '#888',
-    fontSize: '12px',
-    fontWeight: 'bold',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  input: {
-    padding: '12px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    fontSize: '14px',
-    outline: 'none',
-  },
+  divider: { margin: '15px 0', color: '#888', fontSize: '12px', fontWeight: 'bold' },
+  form: { display: 'flex', flexDirection: 'column', gap: '10px' },
+  input: { padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', outline: 'none' },
   submitBtn: {
     padding: '12px',
     backgroundColor: '#000000',
@@ -196,13 +210,56 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
   },
-  toggleBtn: {
-    marginTop: '15px',
-    background: 'none',
-    border: 'none',
-    color: '#0070f3',
-    cursor: 'pointer',
+  toggleBtn: { marginTop: '15px', background: 'none', border: 'none', color: '#0070f3', cursor: 'pointer', fontSize: '13px' },
+  messageLink: { background: 'none', border: 'none', color: '#25D366', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'grid',
+    placeItems: 'center',
+    zIndex: 1000,
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    padding: '25px',
+    borderRadius: '12px',
+    width: '90%',
+    maxWidth: '350px',
+    textAlign: 'center',
+  },
+  whatsappBtn: {
+    display: 'block',
+    padding: '12px',
+    backgroundColor: '#25D366',
+    color: '#fff',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginBottom: '10px',
     fontSize: '13px',
   },
+  emailBtn: {
+    display: 'block',
+    padding: '12px',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    borderRadius: '6px',
+    textDecoration: 'none',
+    fontWeight: 'bold',
+    marginBottom: '15px',
+    fontSize: '13px',
+  },
+  closeBtn: {
+    background: '#eee',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+  },
 };
-        
+                
