@@ -9,7 +9,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'message' | 'cart' | 'me' | 'settings' | 'addresses' | 'add_address'
   const [cart, setCart] = useState([]);
 
-  // Address State Pre-filled with saved entries
+  // Address State
   const [addresses, setAddresses] = useState([
     {
       id: 1,
@@ -29,7 +29,7 @@ export default function Home() {
     },
   ]);
 
-  // Form state for adding new address
+  // Form State
   const [newAddress, setNewAddress] = useState({
     region: 'Lagos State, Nigeria',
     street: '',
@@ -296,7 +296,6 @@ export default function Home() {
               <div style={{ color: '#888', fontSize: '0.85rem' }}>&gt;</div>
             </div>
 
-            {/* Address Management Link */}
             <div onClick={() => setActiveTab('addresses')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <span style={{ color: '#777' }}>📍</span>
@@ -364,4 +363,4 @@ export default function Home() {
           <div style={{ padding: '1rem', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff' }}>
             <button
               onClick={() => setActiveTab('add_address')}
-              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', bor
+              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.8rem', fontWeight: 'bold', fontSize: '1rem', curso
