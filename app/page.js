@@ -6,8 +6,38 @@ import { supabase } from '../lib/supabase';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'message' | 'cart' | 'me'
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'message' | 'cart' | 'me' | 'settings' | 'addresses' | 'add_address'
   const [cart, setCart] = useState([]);
+
+  // Address State Pre-filled with saved entries
+  const [addresses, setAddresses] = useState([
+    {
+      id: 1,
+      region: 'Ikorodu, Lagos state, Nigeria',
+      street: 'RVJ HOTEL Itele, Maya Ikorodu Lagos State Nigeria.',
+      name: 'SLIM DADDY',
+      phone: '+234-8168940939',
+      isDefault: true,
+    },
+    {
+      id: 2,
+      region: 'Ikeja, Lagos state, Nigeria',
+      street: '11 14th Unity Estate Maya Ikorodu Lagos',
+      name: 'SUNDAY SAMSON ELUU',
+      phone: '+234-8168940939',
+      isDefault: false,
+    },
+  ]);
+
+  // Form state for adding new address
+  const [newAddress, setNewAddress] = useState({
+    region: 'Lagos State, Nigeria',
+    street: '',
+    name: '',
+    phone: '',
+    zipCode: '',
+    isDefault: false,
+  });
 
   useEffect(() => {
     async function fetchProducts() {
@@ -18,7 +48,6 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  // Add item to cart or increment quantity
   const addToCart = (product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -31,7 +60,6 @@ export default function Home() {
     });
   };
 
-  // Adjust item quantity in cart
   const updateQuantity = (id, delta) => {
     setCart((prev) =>
       prev
@@ -46,25 +74,21 @@ export default function Home() {
     );
   };
 
-  // Toggle single item selection
   const toggleSelect = (id) => {
     setCart((prev) =>
       prev.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item))
     );
   };
 
-  // Toggle select all
   const toggleSelectAll = () => {
     const allSelected = cart.every((item) => item.selected);
     setCart((prev) => prev.map((item) => ({ ...item, selected: !allSelected })));
   };
 
-  // Calculate overall total price for selected items
   const totalPrice = cart
     .filter((item) => item.selected)
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Send aggregated cart order directly via WhatsApp
   const handleCheckout = () => {
     const selectedItems = cart.filter((item) => item.selected);
     if (selectedItems.length === 0) return;
@@ -78,8 +102,30 @@ export default function Home() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  const handleSaveAddress = (e) => {
+    e.preventDefault();
+    if (!newAddress.street || !newAddress.name || !newAddress.phone) return;
+
+    const entry = {
+      id: Date.now(),
+      region: newAddress.region,
+      street: newAddress.street,
+      name: newAddress.name,
+      phone: newAddress.phone,
+      isDefault: newAddress.isDefault,
+    };
+
+    if (newAddress.isDefault) {
+      setAddresses((prev) => prev.map((addr) => ({ ...addr, isDefault: false })));
+    }
+
+    setAddresses((prev) => [...prev, entry]);
+    setNewAddress({ region: 'Lagos State, Nigeria', street: '', name: '', phone: '', zipCode: '', isDefault: false });
+    setActiveTab('addresses');
+  };
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: '120px' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: ['settings', 'addresses', 'add_address'].includes(activeTab) ? '20px' : '120px' }}>
 
       {/* ==================== HOME TAB ==================== */}
       {activeTab === 'home' && (
@@ -99,7 +145,6 @@ export default function Home() {
 
           <div style={{ padding: '0 0.5rem' }}>
             <h3 style={{ fontSize: '1rem', margin: '0.5rem 0', paddingLeft: '0.2rem' }}>Recommended Products</h3>
-
             {loading ? (
               <p style={{ textAlign: 'center', color: '#888', padding: '2rem 0' }}>Loading store catalog...</p>
             ) : (
@@ -132,23 +177,20 @@ export default function Home() {
       {/* ==================== CART TAB ==================== */}
       {activeTab === 'cart' && (
         <div>
-          {/* Cart Header */}
           <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.3rem', fontWeight: 'bold' }}>Cart</span>
-              <span style={{ fontSize: '0.8rem', color: '#666' }}>📍 Ikorodu, Lagos... &gt;</span>
+              <span onClick={() => setActiveTab('addresses')} style={{ fontSize: '0.8rem', color: '#666', cursor: 'pointer' }}>📍 Ikorodu, Lagos... &gt;</span>
             </div>
             <div style={{ color: '#333', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}>Manage</div>
           </div>
 
-          {/* Cart Subheader Tabs */}
           <div style={{ backgroundColor: '#fff', display: 'flex', gap: '1.5rem', padding: '0.5rem 1rem', borderBottom: '1px solid #eee', fontSize: '0.9rem', color: '#555' }}>
             <span style={{ fontWeight: 'bold', color: '#000', borderBottom: '2px solid #ff4d00', paddingBottom: '2px' }}>In Stock {cart.length}</span>
             <span>Dropshipping</span>
             <span>Regulars List</span>
           </div>
 
-          {/* Cart Item List */}
           <div style={{ padding: '0.5rem' }}>
             {cart.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#888' }}>
@@ -159,22 +201,17 @@ export default function Home() {
             ) : (
               cart.map((item) => (
                 <div key={item.id} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '0.8rem', marginBottom: '0.5rem' }}>
-                  {/* Store Name Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
                     <input type="checkbox" checked={item.selected} onChange={() => toggleSelect(item.id)} style={{ accentColor: '#ff4d00', width: '18px', height: '18px' }} />
                     <span>🏪 Chrisvic Store Official &gt;</span>
                   </div>
 
-                  {/* Product Details */}
                   <div style={{ display: 'flex', gap: '0.8rem' }}>
                     <img src={item.image_url} alt={item.title} style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }} />
                     <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#222' }}>{item.title}</div>
-                      
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
                         <span style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '1rem' }}>₦{Number(item.price).toLocaleString()}</span>
-                        
-                        {/* Quantity Controls */}
                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '4px' }}>
                           <button onClick={() => updateQuantity(item.id, -1)} style={{ border: 'none', background: '#f5f5f5', padding: '0.2rem 0.6rem', cursor: 'pointer' }}>-</button>
                           <span style={{ padding: '0 0.6rem', fontSize: '0.85rem' }}>{item.quantity}</span>
@@ -188,7 +225,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Floating Sticky Checkout Bar */}
           {cart.length > 0 && (
             <div style={{ position: 'fixed', bottom: '60px', left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #eee', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 999 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
@@ -221,7 +257,7 @@ export default function Home() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#ffebd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🐮</div>
               <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Chrisvic_Customer</span>
             </div>
-            <div style={{ fontSize: '1.4rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
+            <div onClick={() => setActiveTab('settings')} style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
           </div>
 
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '1rem', marginBottom: '0.8rem' }}>
@@ -240,40 +276,92 @@ export default function Home() {
         </div>
       )}
 
-      {/* ==================== MESSAGE TAB ==================== */}
-      {activeTab === 'message' && (
-        <div style={{ padding: '3rem 1rem', textAlign: 'center', color: '#666' }}>
-          <h3>Messages</h3>
-          <p>Direct WhatsApp Customer Support is active.</p>
+      {/* ==================== BUYER SETTINGS PAGE ==================== */}
+      {activeTab === 'settings' && (
+        <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
+          <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', position: 'sticky', top: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <span onClick={() => setActiveTab('me')} style={{ fontSize: '1.4rem', cursor: 'pointer', fontWeight: 'bold' }}>⟨</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Buyer settings</span>
+            </div>
+            <span style={{ fontSize: '1.2rem', color: '#666', cursor: 'pointer' }}>•••</span>
+          </div>
+
+          <div style={{ backgroundColor: '#fff', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ color: '#777' }}>🔄</span>
+                <span>Account Switch</span>
+              </div>
+              <div style={{ color: '#888', fontSize: '0.85rem' }}>&gt;</div>
+            </div>
+
+            {/* Address Management Link */}
+            <div onClick={() => setActiveTab('addresses')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ color: '#777' }}>📍</span>
+                <span style={{ fontWeight: 'bold', color: '#ff4d00' }}>Address Management</span>
+              </div>
+              <div style={{ color: '#888', fontSize: '0.85rem' }}>&gt;</div>
+            </div>
+
+            {[
+              { label: 'Account & Security', icon: '🔒' },
+              { label: 'Payment Settings', icon: '💳' },
+              { label: 'Privacy', icon: '👁️' },
+              { label: 'Country/Region', detail: 'Global', icon: '🌐' },
+              { label: 'Language', detail: 'English', icon: '🌐' },
+              { label: 'Currency', detail: 'NGN:₦', icon: '₦' },
+            ].map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1rem', borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ color: '#777' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </div>
+                <div style={{ color: '#888', fontSize: '0.85rem' }}>
+                  {item.detail && <span style={{ marginRight: '0.5rem' }}>{item.detail}</span>}
+                  &gt;
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* ==================== BOTTOM STICKY NAVIGATION ==================== */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px', backgroundColor: '#fff', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-around', alignItems: 'center', fontSize: '0.75rem', color: '#666', zIndex: 1000 }}>
-        <div onClick={() => setActiveTab('home')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'home' ? '#ff4d00' : '#666' }}>
-          <div style={{ fontSize: '1.2rem' }}>🏠</div>
-          <span>Home</span>
-        </div>
-        <div onClick={() => setActiveTab('message')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'message' ? '#ff4d00' : '#666' }}>
-          <div style={{ fontSize: '1.2rem' }}>💬</div>
-          <span>Message</span>
-        </div>
-        <div onClick={() => setActiveTab('cart')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'cart' ? '#ff4d00' : '#666', position: 'relative' }}>
-          <div style={{ fontSize: '1.2rem' }}>🛒</div>
-          <span>Cart</span>
-          {cart.length > 0 && (
-            <span style={{ position: 'absolute', top: '-2px', right: '12px', backgroundColor: '#ff4d00', color: '#fff', borderRadius: '50%', padding: '0.1rem 0.4rem', fontSize: '0.65rem', fontWeight: 'bold' }}>
-              {cart.reduce((sum, item) => sum + item.quantity, 0)}
-            </span>
-          )}
-        </div>
-        <div onClick={() => setActiveTab('me')} style={{ textAlign: 'center', cursor: 'pointer', color: activeTab === 'me' ? '#ff4d00' : '#666' }}>
-          <div style={{ fontSize: '1.2rem' }}>👤</div>
-          <span>Me</span>
-        </div>
-      </div>
+      {/* ==================== ADDRESS LIST SCREEN ==================== */}
+      {activeTab === 'addresses' && (
+        <div style={{ backgroundColor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                <span onClick={() => setActiveTab('settings')} style={{ fontSize: '1.4rem', cursor: 'pointer', fontWeight: 'bold' }}>⟨</span>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Address</span>
+              </div>
+              <span style={{ color: '#ff4d00', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer' }}>⚙ Manage</span>
+            </div>
 
-    </div>
-  );
-    }
-        
+            <div style={{ padding: '1rem' }}>
+              {addresses.map((item) => (
+                <div key={item.id} style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ color: '#888', fontSize: '0.8rem', marginBottom: '0.3rem' }}>{item.region}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: '#111', marginBottom: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{item.street}</span>
+                    <span style={{ color: '#888', fontSize: '1rem', cursor: 'pointer' }}>✏️</span>
+                  </div>
+                  <div style={{ color: '#555', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span>{item.name} {item.phone}</span>
+                    {item.isDefault && (
+                      <span style={{ backgroundColor: '#ffebe6', color: '#ff4d00', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px', border: '1px solid #ff4d00' }}>
+                        默认
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ padding: '1rem', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff' }}>
+            <button
+              onClick={() => setActiveTab('add_address')}
+              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', bor
