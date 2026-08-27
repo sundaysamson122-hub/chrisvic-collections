@@ -127,7 +127,7 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f4f4f4', color: '#333', fontFamily: 'sans-serif', paddingBottom: ['settings', 'addresses', 'add_address'].includes(activeTab) ? '20px' : '120px' }}>
 
-      {/* ==================== HOME TAB ==================== */}
+      {/* HOME TAB */}
       {activeTab === 'home' && (
         <>
           <div style={{ display: 'flex', gap: '1.5rem', padding: '0.8rem 1rem 0.4rem', fontWeight: 'bold', fontSize: '1.1rem', backgroundColor: '#fff' }}>
@@ -175,7 +175,7 @@ export default function Home() {
         </>
       )}
 
-      {/* ==================== CART TAB ==================== */}
+      {/* CART TAB */}
       {activeTab === 'cart' && (
         <div>
           <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -252,7 +252,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ==================== ME TAB ==================== */}
+      {/* ME TAB */}
       {activeTab === 'me' && (
         <div style={{ padding: '0.8rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0.5rem 0.2rem' }}>
@@ -279,7 +279,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ==================== BUYER SETTINGS PAGE ==================== */}
+      {/* BUYER SETTINGS PAGE */}
       {activeTab === 'settings' && (
         <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
           <div style={{ backgroundColor: '#fff', padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', position: 'sticky', top: 0 }}>
@@ -329,7 +329,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ==================== ADDRESS LIST SCREEN ==================== */}
+      {/* ADDRESS LIST SCREEN */}
       {activeTab === 'addresses' && (
         <div style={{ backgroundColor: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
@@ -365,4 +365,13 @@ export default function Home() {
           <div style={{ padding: '1rem', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff' }}>
             <button
               onClick={() => setActiveTab('add_address')}
-              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.8rem', fontWeight: 'bold', fontSize: '1rem', 
+              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.8rem', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}
+            >
+              New Receiving Address
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* NEW RECEIVING ADDRESS FORM */}
+      {activeTab === 'add_address'
