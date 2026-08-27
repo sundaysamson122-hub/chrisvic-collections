@@ -260,7 +260,6 @@ export default function Home() {
               <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: '#ffebd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🐮</div>
               <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Chrisvic_Customer</span>
             </div>
-            {/* Added onClick to trigger Settings navigation */}
             <div onClick={() => setActiveTab('settings')} style={{ fontSize: '1.4rem', cursor: 'pointer', color: '#555' }}>⚙️</div>
           </div>
 
@@ -354,7 +353,7 @@ export default function Home() {
                     <span>{item.name} {item.phone}</span>
                     {item.isDefault && (
                       <span style={{ backgroundColor: '#ffebe6', color: '#ff4d00', fontSize: '0.65rem', padding: '0.1rem 0.3rem', borderRadius: '3px', border: '1px solid #ff4d00' }}>
-                        默认
+                        Default
                       </span>
                     )}
                   </div>
@@ -366,4 +365,4 @@ export default function Home() {
           <div style={{ padding: '1rem', position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff' }}>
             <button
               onClick={() => setActiveTab('add_address')}
-              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px
+              style={{ width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', borderRadius: '25px', padding: '0.8rem', fontWeight: 'bold', fontSize: '1rem', 
