@@ -265,8 +265,7 @@ const styles = {
     paddingBottom: '80px',
   },
   banner: {
-    backgroundColor: 'linear-gradient(135deg, #ff6b00 0%, #ff4d00 100%)',
-    background: '#ff4d00',
+    backgroundColor: '#ff4d00',
     color: '#ffffff',
     borderRadius: '12px',
     padding: '16px',
@@ -412,7 +411,7 @@ const styles = {
     backgroundColor: '#ffffff',
     borderTop: '1px solid #e5e7eb',
     display: 'flex',
-    justify.content: 'space-around',
+    justifyContent: 'space-around',
     alignItems: 'center',
     zIndex: 100,
   },
