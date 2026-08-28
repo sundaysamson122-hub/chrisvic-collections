@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const INITIAL_PRODUCTS = [
   {
@@ -57,9 +57,39 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // User Profile State
+  // Persistent User Profile State
   const [userName, setUserName] = useState('Chrisvic Wholesale Buyer');
   const [profileImage, setProfileImage] = useState(null);
+
+  // Load Saved Profile Data on Initial Page Load
+  useEffect(() => {
+    const savedName = localStorage.getItem('chrisvic_userName');
+    const savedImage = localStorage.getItem('chrisvic_profileImage');
+
+    if (savedName) setUserName(savedName);
+    if (savedImage) setProfileImage(savedImage);
+  }, []);
+
+  // Update Name & Persist to Storage
+  const handleNameChange = (e) => {
+    const newName = e.target.value;
+    setUserName(newName);
+    localStorage.setItem('chrisvic_userName', newName);
+  };
+
+  // Upload Image & Convert to Persistent Base64 Data URL
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result;
+        setProfileImage(base64Data);
+        localStorage.setItem('chrisvic_profileImage', base64Data);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Settings State
   const [currency, setCurrency] = useState('NGN');
@@ -70,15 +100,6 @@ export default function Home() {
     street: '',
     cityState: '',
   });
-
-  // Image Upload Handler
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfileImage(imageUrl);
-    }
-  };
 
   const formatPrice = (priceNGN) => {
     const curr = CURRENCIES[currency];
@@ -186,7 +207,7 @@ export default function Home() {
         {/* ME TAB */}
         {activeTab === 'me' && (
           <div>
-            {/* Profile Header with Custom Upload and Name Edit */}
+            {/* Profile Header */}
             <div style={styles.userCard}>
               <label style={styles.avatarLabel} title="Click to upload profile picture">
                 {profileImage ? (
@@ -207,7 +228,7 @@ export default function Home() {
                 <input
                   type="text"
                   value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
+                  onChange={handleNameChange}
                   placeholder="Enter your name"
                   style={styles.nameInput}
                 />
@@ -678,60 +699,4 @@ const styles = {
     color: '#666',
     marginBottom: '20px',
   },
-  contactContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    width: '100%',
-    maxWidth: '320px',
-  },
-  whatsappBtn: {
-    display: 'block',
-    padding: '14px 20px',
-    backgroundColor: '#25D366',
-    color: '#ffffff',
-    borderRadius: '8px',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    fontSize: '14px',
-    textAlign: 'center',
-  },
-  emailBtn: {
-    display: 'block',
-    padding: '14px 20px',
-    backgroundColor: '#0070f3',
-    color: '#ffffff',
-    borderRadius: '8px',
-    textDecoration: 'none',
-    fontWeight: 'bold',
-    fontSize: '14px',
-    textAlign: 'center',
-  },
-  navBar: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '56px',
-    backgroundColor: '#ffffff',
-    borderTop: '1px solid #e5e7eb',
-    display: 'flex',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  navItem: {
-    background: 'none',
-    border: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    fontSize: '11px',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  icon: {
-    fontSize: '18px',
-    marginBottom: '2px',
-  },
-};
+  contactCo
