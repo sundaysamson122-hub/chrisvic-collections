@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 
-// Sample Product Data modeled after 1688 wholesale style
 const INITIAL_PRODUCTS = [
   {
     id: 1,
     title: 'Luxury Italian Leather Handbag - Wholesale Quality',
-    price: '₦25,500',
+    priceNGN: 25500,
     minOrder: 'Min. Order: 2 pcs',
     tag: 'Hot Seller',
     image: '👜',
@@ -15,7 +14,7 @@ const INITIAL_PRODUCTS = [
   {
     id: 2,
     title: 'Designer Platform Sneakers - Unisex Streetwear',
-    price: '₦18,000',
+    priceNGN: 18000,
     minOrder: 'Min. Order: 3 pairs',
     tag: 'Direct Factory',
     image: '👟',
@@ -23,7 +22,7 @@ const INITIAL_PRODUCTS = [
   {
     id: 3,
     title: 'Vintage Gold Plated Jewelry Set (Necklace + Earrings)',
-    price: '₦12,500',
+    priceNGN: 12500,
     minOrder: 'Min. Order: 5 sets',
     tag: 'Trending',
     image: '💍',
@@ -31,7 +30,7 @@ const INITIAL_PRODUCTS = [
   {
     id: 4,
     title: 'Premium Chronograph Men’s Wristwatch',
-    price: '₦32,000',
+    priceNGN: 32000,
     minOrder: 'Min. Order: 1 pc',
     tag: 'Best Quality',
     image: '⌚',
@@ -47,9 +46,35 @@ const CATEGORIES = [
   { name: 'Perfumes', icon: '✨' },
 ];
 
+// Currency Rates relative to NGN
+const CURRENCIES = {
+  NGN: { symbol: '₦', rate: 1, label: 'Naira (NGN)' },
+  USD: { symbol: '$', rate: 0.00065, label: 'USD ($)' },
+  CNY: { symbol: '¥', rate: 0.0047, label: 'Chinese Yuan (CNY)' },
+  XOF: { symbol: 'CFA ', rate: 0.39, label: 'Togo CFA (XOF)' },
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Settings State
+  const [currency, setCurrency] = useState('NGN');
+  const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
+  const [address, setAddress] = useState({
+    fullName: '',
+    phone: '',
+    street: '',
+    cityState: '',
+  });
+
+  const formatPrice = (priceNGN) => {
+    const curr = CURRENCIES[currency];
+    const converted = (priceNGN * curr.rate).toLocaleString(undefined, {
+      maximumFractionDigits: currency === 'USD' ? 2 : 0,
+    });
+    return `${curr.symbol}${converted}`;
+  };
 
   const filteredProducts = INITIAL_PRODUCTS.filter((product) =>
     product.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,7 +82,7 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
-      {/* 1688-Style Sticky Header */}
+      {/* Sticky Header */}
       <header style={styles.header}>
         <div style={styles.headerTop}>
           <span style={styles.logoText}>CHRISVIC</span>
@@ -77,9 +102,9 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main style={styles.mainContent}>
+        {/* HOME TAB */}
         {activeTab === 'home' && (
           <div>
-            {/* Banner Section */}
             <div style={styles.banner}>
               <h2 style={{ margin: '0 0 6px 0', fontSize: '18px' }}>⚡ Direct Supplier Deals</h2>
               <p style={{ margin: 0, fontSize: '13px', opacity: 0.9 }}>
@@ -87,7 +112,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Visual Categories Grid */}
             <h3 style={styles.sectionHeader}>Top Categories</h3>
             <div style={styles.categoryGrid}>
               {CATEGORIES.map((cat, index) => (
@@ -98,7 +122,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 1688 Wholesale Product Feed */}
             <h3 style={styles.sectionHeader}>Recommended Products</h3>
             <div style={styles.productGrid}>
               {filteredProducts.map((product) => (
@@ -107,7 +130,7 @@ export default function Home() {
                   <div style={styles.productDetails}>
                     <span style={styles.tag}>{product.tag}</span>
                     <h4 style={styles.productTitle}>{product.title}</h4>
-                    <p style={styles.productPrice}>{product.price}</p>
+                    <p style={styles.productPrice}>{formatPrice(product.priceNGN)}</p>
                     <p style={styles.productMoq}>{product.minOrder}</p>
                   </div>
                 </div>
@@ -116,12 +139,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* Messages Tab */}
+        {/* MESSAGES TAB */}
         {activeTab === 'message' && (
           <div style={styles.tabSection}>
             <h2 style={styles.heading}>Messages & Support</h2>
             <p style={styles.subtext}>Choose how you would like to reach customer support:</p>
-
             <div style={styles.contactContainer}>
               <a
                 href="https://wa.me/2349033494813?text=Hello%20Chrisvic%20Collections,%20I%20have%20an%20inquiry."
@@ -131,7 +153,6 @@ export default function Home() {
               >
                 💬 WhatsApp (+234 903 349 4813)
               </a>
-
               <a
                 href="mailto:chrisviccollection@gmail.com?subject=Inquiry%20-%20Chrisvic%20Collections"
                 style={styles.emailBtn}
@@ -142,7 +163,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Cart Tab */}
+        {/* CART TAB */}
         {activeTab === 'cart' && (
           <div style={styles.tabSection}>
             <h2 style={styles.heading}>Your Shopping Cart</h2>
@@ -150,16 +171,143 @@ export default function Home() {
           </div>
         )}
 
-        {/* Me Tab */}
+        {/* ME TAB (1688 Style User Dashboard & Buyer Settings) */}
         {activeTab === 'me' && (
-          <div style={styles.tabSection}>
-            <h2 style={styles.heading}>Account & Wholesale Orders</h2>
-            <p style={styles.subtext}>Manage your saved items and supplier history.</p>
+          <div>
+            {/* Profile Header */}
+            <div style={styles.userCard}>
+              <div style={styles.avatar}>👤</div>
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>Chrisvic Wholesale Buyer</h3>
+                <span style={styles.userBadge}>Verified Account</span>
+              </div>
+            </div>
+
+            {/* My Orders Tracking Bar */}
+            <div style={styles.cardSection}>
+              <h4 style={styles.cardTitle}>My Orders</h4>
+              <div style={styles.orderGrid}>
+                <div style={styles.orderItem}>
+                  <span style={styles.orderIcon}>💳</span>
+                  <span>To Pay</span>
+                </div>
+                <div style={styles.orderItem}>
+                  <span style={styles.orderIcon}>📦</span>
+                  <span>To Ship</span>
+                </div>
+                <div style={styles.orderItem}>
+                  <span style={styles.orderIcon}>🚚</span>
+                  <span>To Receive</span>
+                </div>
+                <div style={styles.orderItem}>
+                  <span style={styles.orderIcon}>💬</span>
+                  <span>To Review</span>
+                </div>
+                <div style={styles.orderItem}>
+                  <span style={styles.orderIcon}>🔄</span>
+                  <span>Refund</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Buyer Settings */}
+            <h3 style={styles.sectionHeader}>Buyer Settings</h3>
+
+            {/* Address Management */}
+            <div style={styles.cardSection}>
+              <h4 style={styles.cardTitle}>📍 Address Management</h4>
+              <div style={styles.formGroup}>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={address.fullName}
+                  onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
+                  style={styles.input}
+                />
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={address.phone}
+                  onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                  style={styles.input}
+                />
+                <input
+                  type="text"
+                  placeholder="Street Address"
+                  value={address.street}
+                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                  style={styles.input}
+                />
+                <input
+                  type="text"
+                  placeholder="City & State"
+                  value={address.cityState}
+                  onChange={(e) => setAddress({ ...address, cityState: e.target.value })}
+                  style={styles.input}
+                />
+              </div>
+            </div>
+
+            {/* Payment Options */}
+            <div style={styles.cardSection}>
+              <h4 style={styles.cardTitle}>💳 Payment Options</h4>
+              <p style={styles.fieldLabel}>Preferred Payment Method:</p>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                style={styles.select}
+              >
+                <option value="Bank Transfer">Bank Transfer / EFT</option>
+                <option value="Debit Card">Debit / Credit Card (Paystack/Flutterwave)</option>
+                <option value="Cash on Delivery">Cash on Delivery (Lagos Only)</option>
+                <option value="USDT">Crypto / USDT</option>
+              </select>
+            </div>
+
+            {/* Preferences (Country, Language, Currency) */}
+            <div style={styles.cardSection}>
+              <h4 style={styles.cardTitle}>🌐 Region & Preferences</h4>
+              
+              <div style={styles.fieldRow}>
+                <span style={styles.fieldLabel}>Country / Region:</span>
+                <input
+                  type="text"
+                  value="Nigeria 🇳🇬"
+                  readOnly
+                  style={{ ...styles.input, backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
+                />
+              </div>
+
+              <div style={styles.fieldRow}>
+                <span style={styles.fieldLabel}>Language:</span>
+                <input
+                  type="text"
+                  value="English"
+                  readOnly
+                  style={{ ...styles.input, backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
+                />
+              </div>
+
+              <div style={styles.fieldRow}>
+                <span style={styles.fieldLabel}>Currency Display:</span>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  style={styles.select}
+                >
+                  {Object.entries(CURRENCIES).map(([key, item]) => (
+                    <option key={key} value={key}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         )}
       </main>
 
-      {/* 1688 Fixed Bottom Navigation Bar */}
+      {/* Fixed Bottom Navigation Bar */}
       <nav style={styles.navBar}>
         <button
           onClick={() => setActiveTab('home')}
@@ -355,6 +503,95 @@ const styles = {
     color: '#888',
     margin: 0,
   },
+  userCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+    marginBottom: '12px',
+  },
+  avatar: {
+    width: '48px',
+    height: '48px',
+    backgroundColor: '#fff0e6',
+    borderRadius: '50%',
+    display: 'grid',
+    placeItems: 'center',
+    fontSize: '24px',
+  },
+  userBadge: {
+    backgroundColor: '#e6f7ff',
+    color: '#1890ff',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    padding: '2px 6px',
+    borderRadius: '8px',
+  },
+  cardSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '14px',
+    marginBottom: '12px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+  },
+  cardTitle: {
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#222',
+    margin: '0 0 12px 0',
+  },
+  orderGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(5, 1fr)',
+    gap: '8px',
+    textAlign: 'center',
+  },
+  orderItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    fontSize: '10px',
+    color: '#555',
+  },
+  orderIcon: {
+    fontSize: '20px',
+    marginBottom: '4px',
+  },
+  formGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  fieldRow: {
+    marginBottom: '10px',
+  },
+  fieldLabel: {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#555',
+    display: 'block',
+    marginBottom: '4px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    borderRadius: '6px',
+    border: '1px solid #ddd',
+    fontSize: '13px',
+    boxSizing: 'border-box',
+  },
+  select: {
+    width: '100%',
+    padding: '10px',
+    borderRadius: '6px',
+    border: '1px solid #ddd',
+    fontSize: '13px',
+    backgroundColor: '#fff',
+    boxSizing: 'border-box',
+  },
   tabSection: {
     display: 'flex',
     flexDirection: 'column',
@@ -430,4 +667,3 @@ const styles = {
     marginBottom: '2px',
   },
 };
-              
