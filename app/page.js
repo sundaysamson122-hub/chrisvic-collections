@@ -46,7 +46,6 @@ const CATEGORIES = [
   { name: 'Perfumes', icon: '✨' },
 ];
 
-// Currency Rates relative to NGN
 const CURRENCIES = {
   NGN: { symbol: '₦', rate: 1, label: 'Naira (NGN)' },
   USD: { symbol: '$', rate: 0.00065, label: 'USD ($)' },
@@ -58,6 +57,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // User Profile State
+  const [userName, setUserName] = useState('Chrisvic Wholesale Buyer');
+  const [profileImage, setProfileImage] = useState(null);
+
   // Settings State
   const [currency, setCurrency] = useState('NGN');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
@@ -67,6 +70,15 @@ export default function Home() {
     street: '',
     cityState: '',
   });
+
+  // Image Upload Handler
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setProfileImage(imageUrl);
+    }
+  };
 
   const formatPrice = (priceNGN) => {
     const curr = CURRENCIES[currency];
@@ -171,14 +183,34 @@ export default function Home() {
           </div>
         )}
 
-        {/* ME TAB (1688 Style User Dashboard & Buyer Settings) */}
+        {/* ME TAB */}
         {activeTab === 'me' && (
           <div>
-            {/* Profile Header */}
+            {/* Profile Header with Custom Upload and Name Edit */}
             <div style={styles.userCard}>
-              <div style={styles.avatar}>👤</div>
-              <div>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>Chrisvic Wholesale Buyer</h3>
+              <label style={styles.avatarLabel} title="Click to upload profile picture">
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" style={styles.avatarImage} />
+                ) : (
+                  <div style={styles.avatarPlaceholder}>👤</div>
+                )}
+                <span style={styles.uploadBadge}>📷</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+
+              <div style={{ flex: 1 }}>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  style={styles.nameInput}
+                />
                 <span style={styles.userBadge}>Verified Account</span>
               </div>
             </div>
@@ -264,10 +296,10 @@ export default function Home() {
               </select>
             </div>
 
-            {/* Preferences (Country, Language, Currency) */}
+            {/* Preferences */}
             <div style={styles.cardSection}>
               <h4 style={styles.cardTitle}>🌐 Region & Preferences</h4>
-              
+
               <div style={styles.fieldRow}>
                 <span style={styles.fieldLabel}>Country / Region:</span>
                 <input
@@ -509,18 +541,54 @@ const styles = {
     padding: '16px',
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '14px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     marginBottom: '12px',
   },
-  avatar: {
-    width: '48px',
-    height: '48px',
+  avatarLabel: {
+    position: 'relative',
+    cursor: 'pointer',
+    display: 'inline-block',
+  },
+  avatarImage: {
+    width: '54px',
+    height: '54px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+  },
+  avatarPlaceholder: {
+    width: '54px',
+    height: '54px',
     backgroundColor: '#fff0e6',
     borderRadius: '50%',
     display: 'grid',
     placeItems: 'center',
-    fontSize: '24px',
+    fontSize: '26px',
+  },
+  uploadBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#ff4d00',
+    borderRadius: '50%',
+    width: '18px',
+    height: '18px',
+    fontSize: '10px',
+    display: 'grid',
+    placeItems: 'center',
+    color: '#fff',
+  },
+  nameInput: {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#222',
+    border: 'none',
+    borderBottom: '1px dashed #ccc',
+    outline: 'none',
+    width: '100%',
+    padding: '2px 0',
+    marginBottom: '4px',
+    backgroundColor: 'transparent',
   },
   userBadge: {
     backgroundColor: '#e6f7ff',
