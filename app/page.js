@@ -29,13 +29,32 @@ export default function Home() {
   const [profileImage, setProfileImage] = useState(null);
   const [currency, setCurrency] = useState('NGN');
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
-  const [address, setAddress] = useState({ fullName: '', phone: '', street: '', cityState: '' });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Address & Contact Information State
+  const [address, setAddress] = useState({
+    fullName: '',
+    whatsappNumber: '',
+    callNumber: '',
+    email: '',
+    street: '',
+    cityState: '',
+  });
 
   useEffect(() => {
     const savedName = localStorage.getItem('chrisvic_userName');
     const savedImage = localStorage.getItem('chrisvic_profileImage');
+    const savedAddress = localStorage.getItem('chrisvic_addressDetails');
+    
     if (savedName) setUserName(savedName);
     if (savedImage) setProfileImage(savedImage);
+    if (savedAddress) {
+      try {
+        setAddress(JSON.parse(savedAddress));
+      } catch (e) {
+        console.error("Failed to parse saved address", e);
+      }
+    }
   }, []);
 
   const handleNameChange = (e) => {
@@ -56,6 +75,13 @@ export default function Home() {
     }
   };
 
+  const handleSaveBuyerSettings = (e) => {
+    e.preventDefault();
+    localStorage.setItem('chrisvic_addressDetails', JSON.stringify(address));
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
   const formatPrice = (priceNGN) => {
     const curr = CURRENCIES[currency];
     const converted = (priceNGN * curr.rate).toLocaleString(undefined, { maximumFractionDigits: currency === 'USD' ? 2 : 0 });
@@ -66,6 +92,7 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
+      {/* Top Header */}
       <header style={styles.header}>
         <div style={styles.headerTop}>
           <span style={styles.logoText}>CHRISVIC</span>
@@ -83,6 +110,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Main Container */}
       <main style={styles.mainContent}>
         {activeTab === 'home' && (
           <div>
@@ -140,6 +168,7 @@ export default function Home() {
 
         {activeTab === 'me' && (
           <div>
+            {/* User Profile Card */}
             <div style={styles.userCard}>
               <label style={styles.avatarLabel} title="Click to upload profile picture">
                 {profileImage ? (
@@ -163,6 +192,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Orders Status Grid */}
             <div style={styles.cardSection}>
               <h4 style={styles.cardTitle}>My Orders</h4>
               <div style={styles.orderGrid}>
@@ -177,46 +207,109 @@ export default function Home() {
 
             <h3 style={styles.sectionHeader}>Buyer Settings</h3>
 
-            <div style={styles.cardSection}>
-              <h4 style={styles.cardTitle}>📍 Address Management</h4>
-              <div style={styles.formGroup}>
-                <input type="text" placeholder="Full Name" value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} style={styles.input} />
-                <input type="text" placeholder="Phone Number" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} style={styles.input} />
-                <input type="text" placeholder="Street Address" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} style={styles.input} />
-                <input type="text" placeholder="City & State" value={address.cityState} onChange={(e) => setAddress({ ...address, cityState: e.target.value })} style={styles.input} />
+            {saveSuccess && (
+              <div style={styles.successBanner}>
+                ✅ Buyer settings saved successfully!
               </div>
-            </div>
+            )}
 
-            <div style={styles.cardSection}>
-              <h4 style={styles.cardTitle}>💳 Payment Options</h4>
-              <p style={styles.fieldLabel}>Preferred Payment Method:</p>
-              <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={styles.select}>
-                <option value="Bank Transfer">Bank Transfer / EFT</option>
-                <option value="Debit Card">Debit / Credit Card (Paystack/Flutterwave)</option>
-                <option value="Cash on Delivery">Cash on Delivery (Lagos Only)</option>
-                <option value="USDT">Crypto / USDT</option>
-              </select>
-            </div>
-
-            <div style={styles.cardSection}>
-              <h4 style={styles.cardTitle}>🌐 Region & Preferences</h4>
-              <div style={styles.fieldRow}>
-                <span style={styles.fieldLabel}>Country / Region:</span>
-                <input type="text" value="Nigeria 🇳🇬" readOnly style={{ ...styles.input, backgroundColor: '#f0f0f0' }} />
+            {/* Buyer Settings Form with Validation */}
+            <form onSubmit={handleSaveBuyerSettings}>
+              {/* Address & Contact Details */}
+              <div style={styles.cardSection}>
+                <h4 style={styles.cardTitle}>📍 Address & Contact Information</h4>
+                <p style={styles.requiredNotice}>* All fields in this section are compulsory</p>
+                <div style={styles.formGroup}>
+                  <input
+                    type="text"
+                    placeholder="Full Name *"
+                    required
+                    value={address.fullName}
+                    onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
+                    style={styles.input}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="WhatsApp Phone Number *"
+                    required
+                    value={address.whatsappNumber}
+                    onChange={(e) => setAddress({ ...address, whatsappNumber: e.target.value })}
+                    style={styles.input}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Call Phone Number *"
+                    required
+                    value={address.callNumber}
+                    onChange={(e) => setAddress({ ...address, callNumber: e.target.value })}
+                    style={styles.input}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email Address *"
+                    required
+                    value={address.email}
+                    onChange={(e) => setAddress({ ...address, email: e.target.value })}
+                    style={styles.input}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Street Address *"
+                    required
+                    value={address.street}
+                    onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                    style={styles.input}
+                  />
+                  <input
+                    type="text"
+                    placeholder="City & State *"
+                    required
+                    value={address.cityState}
+                    onChange={(e) => setAddress({ ...address, cityState: e.target.value })}
+                    style={styles.input}
+                  />
+                </div>
               </div>
-              <div style={styles.fieldRow}>
-                <span style={styles.fieldLabel}>Currency Display:</span>
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={styles.select}>
-                  {Object.entries(CURRENCIES).map(([k, item]) => (
-                    <option key={k} value={k}>{item.label}</option>
-                  ))}
+
+              {/* Payment Methods */}
+              <div style={styles.cardSection}>
+                <h4 style={styles.cardTitle}>💳 Payment Options</h4>
+                <p style={styles.fieldLabel}>Preferred Payment Method:</p>
+                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} style={styles.select}>
+                  <option value="Bank Transfer">Bank Transfer / EFT</option>
+                  <option value="Debit Card">Debit / Credit Card (Paystack/Flutterwave)</option>
+                  <option value="Cash on Delivery">Cash on Delivery (Lagos Only)</option>
+                  <option value="USDT">Crypto / USDT</option>
                 </select>
               </div>
-            </div>
+
+              {/* Region & Preferences */}
+              <div style={styles.cardSection}>
+                <h4 style={styles.cardTitle}>🌐 Region & Preferences</h4>
+                <div style={styles.fieldRow}>
+                  <span style={styles.fieldLabel}>Country / Region:</span>
+                  <input type="text" value="Nigeria 🇳🇬" readOnly style={{ ...styles.input, backgroundColor: '#f0f0f0' }} />
+                </div>
+                <div style={styles.fieldRow}>
+                  <span style={styles.fieldLabel}>Currency Display:</span>
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={styles.select}>
+                    {Object.entries(CURRENCIES).map(([k, item]) => (
+                      <option key={k} value={k}>{item.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button type="submit" style={styles.saveBtn}>
+                💾 Save Buyer Details
+              </button>
+            </form>
           </div>
         )}
       </main>
 
+      {/* Bottom Navigation */}
       <nav style={styles.navBar}>
         {[
           { key: 'home', label: 'Home', icon: '🏠' },
@@ -268,7 +361,8 @@ const styles = {
   nameInput: { fontSize: '16px', fontWeight: 'bold', color: '#222', border: 'none', borderBottom: '1px dashed #ccc', outline: 'none', width: '100%', padding: '2px 0', marginBottom: '4px', backgroundColor: 'transparent' },
   userBadge: { backgroundColor: '#e6f7ff', color: '#1890ff', fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '8px' },
   cardSection: { backgroundColor: '#fff', borderRadius: '12px', padding: '14px', marginBottom: '12px' },
-  cardTitle: { fontSize: '14px', fontWeight: 'bold', color: '#222', margin: '0 0 12px 0' },
+  cardTitle: { fontSize: '14px', fontWeight: 'bold', color: '#222', margin: '0 0 6px 0' },
+  requiredNotice: { fontSize: '11px', color: '#ff4d00', margin: '0 0 12px 0', fontWeight: '600' },
   orderGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', textAlign: 'center' },
   orderItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '10px', color: '#555' },
   orderIcon: { fontSize: '20px', marginBottom: '4px' },
@@ -277,6 +371,8 @@ const styles = {
   fieldLabel: { fontSize: '12px', fontWeight: '600', color: '#555', display: 'block', marginBottom: '4px' },
   input: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '13px', boxSizing: 'border-box' },
   select: { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '13px', backgroundColor: '#fff', boxSizing: 'border-box' },
+  saveBtn: { width: '100%', backgroundColor: '#ff4d00', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginTop: '6px' },
+  successBanner: { backgroundColor: '#d4edda', color: '#155724', padding: '10px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', marginBottom: '12px', textAlign: 'center' },
   tabSection: { display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '30px', textAlign: 'center' },
   heading: { fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#111' },
   subtext: { fontSize: '13px', color: '#666', marginBottom: '20px' },
