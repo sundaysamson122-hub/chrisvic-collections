@@ -1,0 +1,299 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: catalog
+    description: Storefront catalog operations
+  - name: orders
+    description: Checkout and order operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [catalog]
+      summary: List storefront products
+      description: Returns products available in the storefront.
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: featured
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [catalog]
+      summary: Get a storefront product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a checkout order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        compareAtPrice:
+          type: ["number", "null"]
+        category:
+          type: string
+        rating:
+          type: number
+        reviewCount:
+          type: number
+        imageUrl:
+          type: string
+        badge:
+          type: ["string", "null"]
+        stock:
+          type: number
+      required:
+        - id
+        - name
+        - description
+        - price
+        - compareAtPrice
+        - category
+        - rating
+        - reviewCount
+        - imageUrl
+        - badge
+        - stock
+    OrderItemInput:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: number
+          minimum: 1
+      required:
+        - productId
+        - name
+        - price
+        - quantity
+    OrderInput:
+      type: object
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+        subtotal:
+          type: number
+        deliveryFee:
+          type: number
+        total:
+          type: number
+        customerName:
+          type: string
+          minLength: 2
+        email:
+          type: string
+        phone:
+          type: string
+          minLength: 7
+        address:
+          type: string
+          minLength: 5
+        city:
+          type: string
+          minLength: 2
+        state:
+          type: string
+          minLength: 2
+        paymentMethod:
+          type: string
+          enum: [pay_on_delivery, bank_transfer]
+      required:
+        - items
+        - subtotal
+        - deliveryFee
+        - total
+        - customerName
+        - email
+        - phone
+        - address
+        - city
+        - state
+        - paymentMethod
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+        subtotal:
+          type: number
+        deliveryFee:
+          type: number
+        total:
+          type: number
+        customerName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        paymentMethod:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - items
+        - subtotal
+        - deliveryFee
+        - total
+        - customerName
+        - email
+        - phone
+        - address
+        - city
+        - state
+        - paymentMethod
+        - createdAt
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
