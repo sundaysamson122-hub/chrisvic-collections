@@ -8,6 +8,14 @@ const nextConfig = {
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://adodo-collections-store.replit.app/api/:path*",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
