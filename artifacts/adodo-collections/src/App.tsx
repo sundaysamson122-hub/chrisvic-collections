@@ -33,10 +33,11 @@ const serverEnv = (
   }
 ).process?.env;
 const basePath = (serverEnv?.NEXT_PUBLIC_BASE_PATH || viteEnv?.BASE_URL || '').replace(/\/$/, '');
-const clerkPubKey = publishableKeyFromHost(
-  typeof window !== 'undefined' ? window.location.hostname : '',
-  serverEnv?.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || viteEnv?.VITE_CLERK_PUBLISHABLE_KEY || '',
-);
+const configuredClerkPubKey = serverEnv?.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || viteEnv?.VITE_CLERK_PUBLISHABLE_KEY;
+const clerkPubKey =
+  typeof window === 'undefined'
+    ? configuredClerkPubKey
+    : publishableKeyFromHost(window.location.hostname, configuredClerkPubKey || '');
 const clerkProxyUrl = serverEnv?.NEXT_PUBLIC_CLERK_PROXY_URL || viteEnv?.VITE_CLERK_PROXY_URL;
 
 type CartLine = OrderItem & { stock?: number };
