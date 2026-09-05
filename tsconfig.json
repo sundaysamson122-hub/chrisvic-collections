@@ -4,6 +4,8 @@
   "files": [],
   "compilerOptions": {
     "baseUrl": ".",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["artifacts/adodo-collections/src/*"]
     }
