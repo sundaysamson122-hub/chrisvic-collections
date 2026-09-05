@@ -27,7 +27,11 @@ import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
 const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
-const serverEnv = typeof process !== 'undefined' ? process.env : undefined;
+const serverEnv = (
+  globalThis as typeof globalThis & {
+    process?: { env?: Record<string, string | undefined> };
+  }
+).process?.env;
 const basePath = (serverEnv?.NEXT_PUBLIC_BASE_PATH || viteEnv?.BASE_URL || '').replace(/\/$/, '');
 const clerkPubKey = publishableKeyFromHost(
   typeof window !== 'undefined' ? window.location.hostname : '',

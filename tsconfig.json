@@ -2,10 +2,25 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "artifacts/adodo-collections/src/**/*.ts",
+    "artifacts/adodo-collections/src/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "artifacts/api-server",
+    "artifacts/mockup-sandbox",
+    "lib/api-spec",
+    "scripts"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
+    "jsx": "preserve",
     "lib": ["es2022", "dom", "dom.iterable"],
-    "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["artifacts/adodo-collections/src/*"]
     }
