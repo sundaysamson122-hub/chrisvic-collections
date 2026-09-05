@@ -445,6 +445,18 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const register = () => {
+      navigator.serviceWorker.register(`${basePath || ''}/sw.js`, { scope: basePath || '/' }).catch((error) => {
+        console.error('Unable to register the ADODO app service worker', error);
+      });
+    };
+    window.addEventListener('load', register);
+    if (document.readyState === 'complete') register();
+    return () => window.removeEventListener('load', register);
+  }, []);
+
   return <QueryClientProvider client={queryClient}><ErrorBoundary><WouterRouter base={basePath}>{clerkPubKey ? <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: 'Welcome back.', subtitle: 'Access your curated profile.' } }, signUp: { start: { title: 'Join the collective.', subtitle: 'Unlock exclusive access.' } } }}><AppRoutes /></ClerkProvider> : <AppRoutes />}</WouterRouter></ErrorBoundary><Toaster /></QueryClientProvider>;
 }
 
