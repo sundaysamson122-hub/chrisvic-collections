@@ -1,5 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { Router, type IRouter } from "express";
+import { requireAuth } from "@clerk/express";
 import { db, ordersTable, productsTable, type StoredOrderItem } from "@workspace/db";
 import {
   CreateOrderBody,
@@ -11,6 +12,10 @@ import {
   UpdateOrderResponse,
 } from "@workspace/api-zod";
 import { notifyTelegramOrder } from "../lib/telegram";
+import {
+  getRequestUserAccess,
+  requireAdmin,
+} from "../middlewares/adminAuthorization";
 
 const router: IRouter = Router();
 
@@ -29,15 +34,33 @@ router.get("/orders", async (req, res): Promise<void> => {
     return;
   }
 
+  const access = await getRequestUserAccess(req);
+  if (!access.userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  const filters = [];
+  if (parsed.data.status) {
+    filters.push(eq(ordersTable.status, parsed.data.status));
+  }
+  if (!access.isAdmin) {
+    if (!access.emails.length) {
+      res.json(ListOrdersResponse.parse([]));
+      return;
+    }
+    filters.push(inArray(ordersTable.email, access.emails));
+  }
+
   const orders = await db
     .select()
     .from(ordersTable)
-    .where(parsed.data.status ? eq(ordersTable.status, parsed.data.status) : undefined)
+    .where(filters.length ? and(...filters) : undefined)
     .orderBy(desc(ordersTable.createdAt));
   res.json(ListOrdersResponse.parse(orders.map(serializeOrder)));
 });
 
-router.post("/orders", async (req, res): Promise<void> => {
+router.post("/orders", requireAuth(), async (req, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -68,7 +91,7 @@ router.post("/orders", async (req, res): Promise<void> => {
   res.status(201).json(CreateOrderResponse.parse(serializeOrder(order)));
 });
 
-router.patch("/orders/:id", async (req, res): Promise<void> => {
+router.patch("/orders/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = UpdateOrderParams.safeParse(req.params);
   const parsed = UpdateOrderBody.safeParse(req.body);
   if (!params.success) {

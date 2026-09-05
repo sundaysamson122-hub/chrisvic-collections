@@ -2,10 +2,11 @@ import { count, eq } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { db, ordersTable, productsTable } from "@workspace/db";
 import { GetAdminSummaryResponse } from "@workspace/api-zod";
+import { requireAdmin } from "../middlewares/adminAuthorization";
 
 const router: IRouter = Router();
 
-router.get("/admin/summary", async (_req, res): Promise<void> => {
+router.get("/admin/summary", requireAdmin, async (_req, res): Promise<void> => {
   const [{ totalProducts }] = await db.select({ totalProducts: count() }).from(productsTable);
   const [{ totalOrders }] = await db.select({ totalOrders: count() }).from(ordersTable);
   const [{ pendingOrders }] = await db

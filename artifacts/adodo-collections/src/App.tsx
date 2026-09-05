@@ -1,11 +1,11 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { dark } from '@clerk/themes';
 import {
   ArrowRight, BadgeCheck, BarChart3, Bell, Box, ChevronDown, ChevronLeft,
-  CreditCard, Heart, Home, LayoutDashboard, Loader2, LogOut, Menu,
+  CreditCard, Download, Heart, Home, LayoutDashboard, Loader2, LogOut, Menu,
   Minus, Package, Pencil, Plus, Search, ShieldCheck, ShoppingBag, Sparkles, Store,
   Trash2, Truck, Upload, X, Zap,
 } from 'lucide-react';
@@ -33,6 +33,7 @@ const serverEnv = (
   }
 ).process?.env;
 const basePath = (serverEnv?.NEXT_PUBLIC_BASE_PATH || viteEnv?.BASE_URL || '').replace(/\/$/, '');
+
 const configuredClerkPubKey = serverEnv?.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || viteEnv?.VITE_CLERK_PUBLISHABLE_KEY;
 const clerkPubKey =
   typeof window === 'undefined'
@@ -41,6 +42,10 @@ const clerkPubKey =
 const clerkProxyUrl = serverEnv?.NEXT_PUBLIC_CLERK_PROXY_URL || viteEnv?.VITE_CLERK_PROXY_URL;
 
 type CartLine = OrderItem & { stock?: number };
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
 const money = (value: number) => `₦${value.toLocaleString('en-NG')}`;
 const dateLabel = (value: string) => new Date(value).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
 const imageFallback = (name: string) => `linear-gradient(135deg, hsl(278 50% 12%), hsl(43 40% 25%))`;
@@ -74,6 +79,78 @@ function Logo() {
   </Link>;
 }
 
+function InstallAppButton({ mobile = false }: { mobile?: boolean }) {
+  const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+    setInstalled(standalone);
+
+    const capturePrompt = (event: Event) => {
+      event.preventDefault();
+      setPromptEvent(event as InstallPromptEvent);
+    };
+    const markInstalled = () => {
+      setInstalled(true);
+      setPromptEvent(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', capturePrompt);
+    window.addEventListener('appinstalled', markInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', capturePrompt);
+      window.removeEventListener('appinstalled', markInstalled);
+    };
+  }, []);
+
+  if (installed) return null;
+
+  const install = async () => {
+    if (!promptEvent) {
+      setShowHelp(true);
+      return;
+    }
+    await promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+    if (choice.outcome === 'accepted') setInstalled(true);
+    setPromptEvent(null);
+  };
+
+  return <>
+    <button
+      type="button"
+      onClick={install}
+      className={mobile
+        ? 'flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-bold text-[hsl(var(--primary))] hover:bg-secondary'
+        : 'hidden items-center gap-2 rounded-full border border-[hsl(var(--primary))/0.35] px-4 py-2.5 text-xs font-bold text-[hsl(var(--primary))] transition-all hover:bg-[hsl(var(--primary))] hover:text-[hsl(var(--primary-foreground))] lg:flex'}
+      data-testid={mobile ? 'button-mobile-install-app' : 'button-install-app'}
+    >
+      <Download className="h-4 w-4" /> Install App
+    </button>
+    <Dialog open={showHelp} onOpenChange={setShowHelp}>
+      <DialogContent className="max-w-md border-border bg-card">
+        <DialogHeader>
+          <DialogTitle className="font-display text-3xl">Install ADODO COLLECTIONS</DialogTitle>
+          <DialogDescription className="leading-relaxed">
+            Add the store to your home screen for quick, full-screen access.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 rounded-2xl border border-border/50 bg-background/50 p-5 text-sm leading-relaxed">
+          <p><strong className="text-[hsl(var(--primary))]">iPhone or iPad:</strong> open this page in Safari, tap the Share button, then choose “Add to Home Screen.”</p>
+          <p><strong className="text-[hsl(var(--primary))]">Android or desktop:</strong> open your browser menu and choose “Install ADODO COLLECTIONS” or “Add to Home screen.”</p>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => setShowHelp(false)} className="rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]">Got it</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>;
+}
+
 function SkeletonGrid() {
   return <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="animate-pulse overflow-hidden rounded-[1.25rem] bg-card border border-border"><div className="aspect-[.84] bg-muted" /><div className="space-y-3 p-5"><div className="h-3 w-2/3 rounded-full bg-muted" /><div className="h-4 w-1/2 rounded-full bg-muted" /></div></div>)}</div>;
 }
@@ -89,6 +166,7 @@ function AppHeader({ cartCount }: { cartCount: number }) {
       <Link href="/?category=Home" className="transition-colors hover:text-[hsl(var(--primary))]" data-testid="link-home">Home</Link>
     </nav>
     <div className="flex items-center gap-3">
+      <InstallAppButton />
       <Link href="/cart" className="relative grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary border border-transparent hover:border-border" data-testid="link-cart">
         <ShoppingBag className="h-5 w-5 text-foreground/90" />
         {cartCount > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[hsl(var(--primary))] px-1.5 text-[10px] font-bold text-[hsl(var(--primary-foreground))] shadow-lg shadow-primary/20" data-testid="text-cart-count">{cartCount}</span>}
@@ -102,6 +180,7 @@ function AppHeader({ cartCount }: { cartCount: number }) {
     <Link onClick={() => setMobileOpen(false)} href="/?category=Style" className="rounded-xl px-4 py-3.5 text-sm font-bold hover:bg-secondary" data-testid="link-mobile-style">Style</Link>
     <Link onClick={() => setMobileOpen(false)} href="/?category=Beauty" className="rounded-xl px-4 py-3.5 text-sm font-bold hover:bg-secondary" data-testid="link-mobile-beauty">Beauty</Link>
     <Link onClick={() => setMobileOpen(false)} href="/?category=Home" className="rounded-xl px-4 py-3.5 text-sm font-bold hover:bg-secondary" data-testid="link-mobile-home">Home</Link>
+    <InstallAppButton mobile />
   </nav>}</>;
 }
 
@@ -282,7 +361,6 @@ function LoadingPage() { return <div className="grid min-h-[100dvh] place-items-
 
 function CheckoutPage() {
   const cart = useCart();
-  const [, setLocation] = useLocation();
   const createOrder = useCreateOrder();
   const [form, setForm] = useState({ customerName: '', email: '', phone: '', location: '', paymentMethod: OrderInputPaymentMethod.cash_on_delivery as 'bank_transfer' | 'cash_on_delivery', paymentReceipt: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -307,13 +385,17 @@ function AdminPage() {
   const cart = useCart();
   const [tab, setTab] = useState<'overview' | 'products' | 'orders'>('overview');
   const [productDialog, setProductDialog] = useState<Product | null | undefined>(undefined);
-  const { data: summary, isLoading: summaryLoading } = useGetAdminSummary({ query: { queryKey: getGetAdminSummaryQueryKey() } });
+  const { data: summary, isLoading: summaryLoading, isError: summaryError } = useGetAdminSummary({ query: { queryKey: getGetAdminSummaryQueryKey(), retry: false } });
   const { data: products, isLoading: productsLoading } = useListProducts(undefined, { query: { queryKey: getListProductsQueryKey() } });
   const { data: orders, isLoading: ordersLoading } = useListOrders(undefined, { query: { queryKey: getListOrdersQueryKey() } });
   const updateOrder = useUpdateOrder();
   const qc = useQueryClient();
   const updateStatus = (id: number, status: OrderUpdateStatus) => updateOrder.mutate({ id, data: { status } }, { onSuccess: () => qc.invalidateQueries({ queryKey: getListOrdersQueryKey() }) });
-  
+
+  if (summaryError) {
+    return <div className="grid min-h-[100dvh] place-items-center bg-background adodo-noise p-5"><div className="w-full max-w-lg rounded-[2rem] border border-border/50 bg-card/90 p-10 text-center shadow-2xl"><ShieldCheck className="mx-auto h-12 w-12 text-[hsl(var(--primary))]" /><p className="mt-6 text-[10px] font-bold uppercase tracking-[.25em] text-[hsl(var(--primary))]">Protected Area</p><h1 className="mt-3 font-display text-4xl font-medium">Store owner access required.</h1><p className="mt-4 text-sm leading-relaxed text-foreground/65">This management area is restricted to the approved ADODO COLLECTIONS administrator account.</p><Link href="/" className="mt-8 inline-flex items-center rounded-full bg-[hsl(var(--primary))] px-7 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid="link-admin-denied-store"><ChevronLeft className="mr-2 h-4 w-4" /> Return to Store</Link></div></div>;
+  }
+
   return <div className="min-h-[100dvh] bg-background text-foreground"><div className="flex min-h-[100dvh]"><aside className="hidden w-72 shrink-0 flex-col border-r border-border/50 bg-card p-6 md:flex relative z-10"><Logo /><div className="mt-16 space-y-2"><AdminNav active={tab === 'overview'} icon={<LayoutDashboard />} label="Dashboard" onClick={() => setTab('overview')} testId="button-admin-overview" /><AdminNav active={tab === 'products'} icon={<Store />} label="Catalog Management" onClick={() => setTab('products')} testId="button-admin-products" /><AdminNav active={tab === 'orders'} icon={<Package />} label="Fulfillment Queue" onClick={() => setTab('orders')} testId="button-admin-orders" /></div><div className="mt-auto rounded-2xl border border-[hsl(var(--primary))/0.2] bg-gradient-to-br from-secondary to-background p-5 shadow-lg"><p className="text-[9px] font-bold uppercase tracking-[.25em] text-[hsl(var(--primary))]">Curator Pulse</p><p className="mt-3 text-xs font-medium leading-relaxed text-foreground/70">Maintain the standard. Every detail contributes to the luxury experience.</p></div></aside><div className="min-w-0 flex-1 flex flex-col adodo-noise relative"><header className="flex items-center justify-between border-b border-border/50 bg-card/80 backdrop-blur-md px-6 py-5 sm:px-10 sticky top-0 z-20"><div className="flex items-center gap-4 md:hidden"><Logo /></div><div className="hidden text-sm font-semibold tracking-wide md:block"><span className="text-[hsl(var(--primary))]">Director</span> Access</div><div className="flex items-center gap-3"><Link href="/" className="grid h-10 w-10 place-items-center rounded-full border border-border/50 bg-background hover:border-[hsl(var(--primary))/0.5] transition-colors" data-testid="link-admin-store" title="Return to Storefront"><Home className="h-4 w-4 text-[hsl(var(--primary))]" /></Link><button onClick={() => setTab('orders')} className="grid h-10 w-10 place-items-center rounded-full border border-border/50 bg-background hover:border-[hsl(var(--primary))/0.5] transition-colors relative" data-testid="button-admin-notifications" aria-label="Open order notifications"><Bell className="h-4 w-4 text-foreground/80" />{summary?.pendingOrders ? <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_8px_rgba(212,175,55,0.8)]" /> : null}</button></div></header><main className="px-5 py-10 sm:px-10 flex-1 overflow-y-auto"><div className="flex items-end justify-between gap-4 mb-8"><div><p className="mb-2 text-[10px] font-bold uppercase tracking-[.25em] text-[hsl(var(--primary))]">Command Center</p><h1 className="font-display text-3xl font-medium tracking-tight sm:text-4xl">{tab === 'overview' ? 'Dashboard Overview' : tab === 'products' ? 'Catalog Management' : 'Order Fulfillment'}</h1></div>{tab === 'products' && <button onClick={() => { setTab('products'); setProductDialog(null); }} className="hidden items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-6 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))] hover:scale-105 transition-transform shadow-lg shadow-primary/20 sm:flex" data-testid="button-admin-add-product"><Plus className="h-4 w-4" /> Add Product</button>}</div><div className="mb-8 flex gap-3 overflow-x-auto pb-2 md:hidden"><AdminNav active={tab === 'overview'} icon={<BarChart3 />} label="Dashboard" onClick={() => setTab('overview')} testId="button-admin-mobile-overview" /><AdminNav active={tab === 'products'} icon={<Store />} label="Catalog" onClick={() => setTab('products')} testId="button-admin-mobile-products" /><AdminNav active={tab === 'orders'} icon={<Package />} label="Orders" onClick={() => setTab('orders')} testId="button-admin-mobile-orders" /></div>{tab === 'overview' && <AdminOverview summary={summary} loading={summaryLoading} orders={orders || []} onOrders={() => setTab('orders')} />}{tab === 'products' && <AdminProducts products={products || []} loading={productsLoading} openEditor={setProductDialog} />}{tab === 'orders' && <AdminOrders orders={orders || []} loading={ordersLoading} updateStatus={updateStatus} />}</main></div></div><ProductEditor key={productDialog?.id ?? 'new-product'} product={productDialog} close={() => setProductDialog(undefined)} /></div>;
 }
 
