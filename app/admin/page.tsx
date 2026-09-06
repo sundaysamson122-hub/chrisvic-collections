@@ -11,7 +11,8 @@ export default function AdminPortal() {
   const [productPrice, setProductPrice] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = (e: any) => {
+      
     e.preventDefault();
     if (passwordInput === '197711') {
       setIsAuthenticated(true);
@@ -21,7 +22,8 @@ export default function AdminPortal() {
     }
   };
 
-  const handleProductUpload = (e: React.FormEvent) => {
+    const handleProductUpload = (e: any) => {
+
     e.preventDefault();
     setSuccessMsg(`Product "${productName}" successfully added to store!`);
     setProductName('');
