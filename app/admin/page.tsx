@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import React from 'react';
 
 export default function AdminPortal() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -94,4 +93,4 @@ export default function AdminPortal() {
       </div>
     </div>
   );
-                    }
+}
