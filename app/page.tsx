@@ -26,6 +26,16 @@ export default function StoreFront() {
         const initial: Product[] = [
           { id: '1', name: 'Rosewater Glow Set', price: '₦15,000', category: 'BEAUTY', stock: 35, image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400' },
           { id: '2', name: 'Gold Bloom Drop Earrings', price: '₦8,500', category: 'JEWELRY', stock: 41, image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400' },
+          { id: '1064044', name: 'Rechargeable Metal Bullet Vibrator', price: '₦15,000', category: 'WELLNESS', stock: 20, image: '1064044_2.jpg' },
+          { id: '1064045', name: 'Rechargeable Lipstick Bullet (Black, Pink, Blue)', price: '₦15,000', category: 'WELLNESS', stock: 25, image: '1064045_2.jpg' },
+          { id: '1064053', name: 'Honey Tongue Sucker Vibrator', price: '₦15,000', category: 'WELLNESS', stock: 15, image: '1064053_2.jpg' },
+          { id: '1064054', name: '3in1 Mouth Flapping Vibrator', price: '₦25,000', category: 'WELLNESS', stock: 10, image: '1064054_2.jpg' },
+          { id: '1064055', name: '2in1 Mouth Vibrator', price: '₦20,000', category: 'WELLNESS', stock: 12, image: '1064055_2.jpg' },
+          { id: '1064056', name: 'Honey Tongue Vibrator', price: '₦15,000', category: 'WELLNESS', stock: 18, image: '1064056_2.jpg' },
+          { id: '1064058', name: 'Mouth + Hollowed-Out Patting', price: '₦25,000', category: 'WELLNESS', stock: 14, image: '1064058.jpg' },
+          { id: '1064059', name: 'U-Shaped Mouth Flapping Vibrator', price: '₦30,000', category: 'WELLNESS', stock: 15, image: '1064059_2.jpg' },
+          { id: '1064060', name: 'Dual-Shock Encapsulated Bullet', price: '₦15,000', category: 'WELLNESS', stock: 20, image: '1064060_2.jpg' },
+          { id: '1064061', name: 'Remote Bullet with Pant (Rechargeable)', price: '₦35,000', category: 'WELLNESS', stock: 16, image: '1064061_2.jpg' }
         ];
         setProducts(initial);
         localStorage.setItem('adodo_admin_products', JSON.stringify(initial));
@@ -69,7 +79,7 @@ export default function StoreFront() {
 
         {/* Category Filter Pills */}
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '24px' }}>
-          {['ALL', 'WOMEN', 'BEAUTY', 'JEWELRY', 'ACCESSORIES', 'HOME'].map(cat => (
+          {['ALL', 'WOMEN', 'BEAUTY', 'JEWELRY', 'ACCESSORIES', 'HOME', 'WELLNESS'].map(cat => (
             <button 
               key={cat}
               onClick={() => setSelectedCategory(cat)}
